@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FunCraft Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.cdnfonts.com/css/minecraft-4" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to bottom, #0f172a, #1e2937);
+      font-family: 'Minecraft', sans-serif;
+      color: #a3e635;
+    }
+    .minecraft-btn {
+      font-family: 'Minecraft', sans-serif;
+      font-size: 2.5rem;
+      padding: 20px 60px;
+      background: #4ade80;
+      color: #052e16;
+      border: 6px solid #166534;
+      box-shadow: 0 8px 0 #166534;
+      transition: all 0.1s;
+    }
+    .minecraft-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 4px 0 #166534;
+    }
+    .pixel-text {
+      text-shadow: 3px 3px 0 #166534;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+
+  <!-- Hamburger Menu Top Left -->
+  <div class="absolute top-6 left-6 z-50">
+    <button onclick="toggleLogin()" class="text-4xl text-lime-400 hover:text-lime-300 transition">
+      ☰
+    </button>
+  </div>
+
+  <!-- Login Dropdown -->
+  <div id="loginDropdown" class="hidden absolute top-20 left-6 bg-zinc-900 border-4 border-lime-400 p-4 rounded shadow-xl w-64">
+    <p class="text-lime-400 mb-3 text-center font-bold">Masuk ke FunCraft</p>
+    <button onclick="loginGoogle()" 
+            class="w-full bg-white text-black py-3 rounded flex items-center justify-center gap-2 hover:bg-gray-200">
+      <span class="text-xl">G</span>
+      <span>Lanjut dengan Google</span>
+    </button>
+    <p class="text-center text-xs text-gray-400 mt-4">Atau sign in manual nanti di web lo</p>
+  </div>
+
+  <div class="text-center">
+    <!-- Welcome -->
+    <h1 class="text-5xl pixel-text mb-6 text-white">SELAMAT DATANG DI FUNCRAFT</h1>
+
+    <!-- Big Start Button -->
+    <button onclick="mulaiGame()" 
+            class="minecraft-btn mx-auto block rounded">
+      MULAI
+    </button>
+
+    <p class="mt-8 text-xl text-lime-300">Klik tombol di atas buat langsung masuk server</p>
+
+    <!-- Request Section -->
+    <div class="mt-12 max-w-md mx-auto">
+      <input id="requestInput" 
+             type="text" 
+             placeholder="Request apa aja (skin, addon, event...)" 
+             class="w-full bg-zinc-800 border-2 border-lime-400 text-white px-4 py-3 focus:outline-none focus:border-lime-500">
+      <button onclick="kirimRequest()" 
+              class="mt-3 bg-amber-500 hover:bg-amber-600 text-black px-8 py-2 rounded font-bold">
+        KIRIM REQUEST
+      </button>
+    </div>
+
+    <!-- Latest Updates -->
+    <div class="mt-16 max-w-2xl mx-auto text-left px-6">
+      <h2 class="text-3xl mb-4 text-white border-b border-lime-400 pb-2">UPDATE TERBARU</h2>
+      
+      <div class="space-y-6">
+        <div>
+          <h3 class="text-lime-400 font-bold">VT TikTok FunCraft</h3>
+          <p class="text-gray-300 text-sm">New episode: "Building Mega Base di Nether" - 3 jam lalu</p>
+        </div>
+        
+        <div>
+          <h3 class="text-lime-400 font-bold">Addon Terbaru</h3>
+          <p class="text-gray-300 text-sm">• Create Mod v0.5.1 (Mesin baru + Steam Engine)<br>
+             • Custom Mob Pack "Ender Fantasy" (20 mob baru)</p>
+        </div>
+        
+        <div>
+          <h3 class="text-lime-400 font-bold">Server Update</h3>
+          <p class="text-gray-300 text-sm">Version 1.21.3 • Economy reset • New spawn area</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleLogin() {
+      document.getElementById('loginDropdown').classList.toggle('hidden');
+    }
+
+    function loginGoogle() {
+      alert("🔄 Redirect ke Google Login... (nanti lo hubungin ke web lo sendiri)");
+    }
+
+    function mulaiGame() {
+      alert("🚀 Masuk ke FunCraft Server...\nIP: play.funcraft.id (contoh)");
+    }
+
+    function kirimRequest() {
+      const input = document.getElementById('requestInput');
+      if(input.value.trim()) {
+        alert(`✅ Request lo "${input.value}" udah dikirim ke tim FunCraft!`);
+        input.value = '';
+      }
+    }
+
+    // Enter key support
+    document.getElementById('requestInput').addEventListener('keypress', function(e) {
+      if(e.key === 'Enter') kirimRequest();
+    });
+  </script>
+</body>
+</html>
