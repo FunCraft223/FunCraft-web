@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FunCraft Dashboard - Bintang Jatuh & Firebase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.cdnfonts.com/css/minecraft-4" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(to bottom, #0f172a, #1e2937);
+      font-family: 'Minecraft', 'Courier New', monospace;
+      color: #a3e635;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    .minecraft-btn {
+      font-family: 'Minecraft', 'Courier New', monospace;
+      font-size: 2.5rem;
+      padding: 20px 60px;
+      background: #4ade80;
+      color: #052e16;
+      border: 6px solid #166534;
+      box-shadow: 0 8px 0 #166534;
+      transition: all 0.1s;
+      cursor: pointer;
+    }
+    .minecraft-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 4px 0 #166534;
+    }
+    .pixel-text {
+      text-shadow: 3px 3px 0 #166534;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="starCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0;"></canvas>
+
+  <div class="relative z-10 min-h-screen flex flex-col items-center justify-center px-4">
+    <!-- Menu Hamburger kiri atas -->
+    <div class="absolute top-6 left-6 z-50">
+      <button id="menuButton" class="text-4xl text-lime-400 hover:text-lime-300 transition">☰</button>
+    </div>
+
+    <!-- Dropdown Login -->
+    <div id="loginDropdown" class="hidden absolute top-20 left-6 bg-zinc-900 border-4 border-lime-400 p-4 rounded w-64 z-40 shadow-2xl">
+      <p class="text-lime-400 text-center font-bold mb-2">Masuk ke FunCraft</p>
+      <button id="googleLoginBtn" class="w-full bg-white text-black py-2 rounded flex justify-center gap-2 hover:bg-gray-200">
+        <span>G</span> Lanjut dengan Google
+      </button>
+      <button id="logoutBtn" class="hidden w-full bg-red-600 text-white py-2 rounded mt-2">Logout</button>
+      <div id="userInfo" class="hidden text-center text-sm mt-3 text-lime-300 font-bold"></div>
+    </div>
+
+    <!-- Konten utama -->
+    <div class="text-center">
+      <h1 class="text-5xl pixel-text mb-6 text-white">SELAMAT DATANG DI FUNCRAFT</h1>
+      <button onclick="mulaiGame()" class="minecraft-btn mx-auto block rounded">MULAI</button>
+      <p class="mt-8 text-xl text-lime-300">Klik tombol di atas buat langsung masuk server</p>
+
+      <!-- Bagian Request (dinonaktifkan sebelum login) -->
+      <div id="requestSection" class="mt-12 max-w-md mx-auto opacity-50 pointer-events-none transition">
+        <input id="requestInput" type="text" placeholder="Request apa aja (skin, addon, event...)" 
+               class="w-full bg-zinc-800 border-2 border-lime-400 text-white px-4 py-3 rounded focus:outline-none focus:border-lime-500">
+        <button id="kirimRequestBtn" class="mt-3 bg-amber-500 hover:bg-amber-600 text-black px-8 py-2 rounded font-bold transition">KIRIM REQUEST</button>
+        <div id="requestStatus" class="text-sm mt-2 text-gray-400"></div>
+        <p class="text-xs text-gray-500 mt-2">🔐 Login dengan Google untuk mengirim request</p>
+      </div>
+
+      <!-- Update terbaru -->
+      <div class="mt-16 max-w-2xl mx-auto text-left px-6">
+        <h2 class="text-3xl mb-4 text-white border-b border-lime-400 pb-2">UPDATE TERBARU</h2>
+        <div class="space-y-6">
+          <div><h3 class="text-lime-400 font-bold">VT TikTok FunCraft</h3><p class="text-gray-300 text-sm">New episode: "Building Mega Base di Nether" - 3 jam lalu</p></div>
+          <div><h3 class="text-lime-400 font-bold">Addon Terbaru</h3><p class="text-gray-300 text-sm">• Create Mod v0.5.1 (Mesin baru + Steam Engine)<br>• Custom Mob Pack "Ender Fantasy" (20 mob baru)</p></div>
+          <div><h3 class="text-lime-400 font-bold">Server Update</h3><p class="text-gray-300 text-sm">Version 1.21.3 • Economy reset • New spawn area</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase + Logika Utama -->
+  <script type="module">
+    // ========== 🔥 KONFIGURASI FIREBASE (LENGKAP DARI USER) ==========
+    const firebaseConfig = {
+      apiKey: "AIzaSyD8iaexpJHaMRwkq5J2Bh-102ypAyyLRcU",
+      authDomain: "funcraft-1cb25.firebaseapp.com",
+      projectId: "funcraft-1cb25",
+      storageBucket: "funcraft-1cb25.firebasestorage.app",
+      messagingSenderId: "977071066495",
+      appId: "1:977071066495:web:df753cda49918657a05e4a",
+      measurementId: "G-C51X294P76"
+    };
+    // =========================================================================
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    const db = getFirestore(app);
+
+    // Ekspos fungsi ke global
+    window.loginGoogle = async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        alert("Login gagal: " + error.message);
+      }
+    };
+    window.logout = () => signOut(auth);
+
+    // Kirim request ke Firestore + Discord
+    window.kirimRequest = async () => {
+      const input = document.getElementById('requestInput');
+      const btn = document.getElementById('kirimRequestBtn');
+      const statusDiv = document.getElementById('requestStatus');
+      const text = input.value.trim();
+      if (!text) {
+        statusDiv.innerHTML = "⚠️ Masukkan request terlebih dahulu!";
+        setTimeout(() => statusDiv.innerHTML = "", 2000);
+        return;
+      }
+      const user = auth.currentUser;
+      if (!user) {
+        statusDiv.innerHTML = "🔒 Silakan login dengan Google terlebih dahulu!";
+        setTimeout(() => statusDiv.innerHTML = "", 2000);
+        return;
+      }
+      btn.disabled = true;
+      statusDiv.innerHTML = "📤 Mengirim request...";
+      statusDiv.classList.remove("text-red-400", "text-green-400");
+      statusDiv.classList.add("text-lime-400");
+
+      let firestoreOk = false;
+      try {
+        await addDoc(collection(db, "requests"), {
+          text: text,
+          userId: user.uid,
+          userName: user.displayName,
+          userEmail: user.email,
+          timestamp: serverTimestamp()
+        });
+        firestoreOk = true;
+      } catch (err) {
+        console.error("Firestore error:", err);
+      }
+
+      const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1507886896171192421/rwq_plNXE9SiqGYaXVVkRO9St36CqJleeDEk-YxlDuP8IvoNYJ-KWcglVPcC_I0YZXzE";
+      let discordOk = false;
+      try {
+        const res = await fetch(DISCORD_WEBHOOK, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            embeds: [{
+              title: "📢 Request Baru dari FunCraft",
+              description: text,
+              fields: [
+                { name: "👤 Pengirim", value: user.displayName || user.email, inline: true },
+                { name: "🆔 User ID", value: user.uid, inline: true }
+              ],
+              color: 0xa3e635,
+              footer: { text: "FunCraft Dashboard" },
+              timestamp: new Date().toISOString()
+            }],
+            username: "FunCraft Request Bot"
+          })
+        });
+        if (res.ok) discordOk = true;
+      } catch (err) { console.error(err); }
+
+      if (firestoreOk && discordOk) statusDiv.innerHTML = "✅ Request tersimpan & terkirim ke Discord!";
+      else if (firestoreOk) statusDiv.innerHTML = "✅ Tersimpan di database (Discord gagal)";
+      else statusDiv.innerHTML = "❌ Gagal menyimpan request. Coba lagi.";
+      
+      if (firestoreOk) input.value = "";
+      setTimeout(() => statusDiv.innerHTML = "", 3000);
+      btn.disabled = false;
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      const loginBtn = document.getElementById('googleLoginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const userInfo = document.getElementById('userInfo');
+      const requestSec = document.getElementById('requestSection');
+      if (user) {
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        userInfo.classList.remove('hidden');
+        userInfo.innerHTML = `✅ ${user.displayName || user.email}`;
+        requestSec.classList.remove('opacity-50', 'pointer-events-none');
+      } else {
+        loginBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+        userInfo.classList.add('hidden');
+        requestSec.classList.add('opacity-50', 'pointer-events-none');
+      }
+    });
+
+    document.getElementById('googleLoginBtn').onclick = () => window.loginGoogle();
+    document.getElementById('logoutBtn').onclick = () => window.logout();
+    document.getElementById('kirimRequestBtn').onclick = () => window.kirimRequest();
+    document.getElementById('requestInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') window.kirimRequest();
+    });
+  </script>
+
+  <!-- Animasi Bintang Jatuh (Canvas) -->
+  <script>
+    (function() {
+      const canvas = document.getElementById('starCanvas');
+      if (!canvas) return;
+      let ctx = canvas.getContext('2d');
+      let width, height;
+      let stars = [];
+      const STAR_COUNT = 120;
+      const MAX_SPEED = 2.8, MIN_SPEED = 0.8;
+      const colors = ['#ffffff', '#f0f0ff', '#fffde7', '#e0f7fa', '#ffe0b3'];
+      function randomColor() { return colors[Math.floor(Math.random() * colors.length)]; }
+      class Star {
+        constructor(x, y, speed, size, color) {
+          this.x = x; this.y = y; this.speed = speed; this.size = size; this.color = color;
+          this.opacity = 0.5 + Math.random() * 0.5;
+        }
+        update() { this.y += this.speed; if (this.y > height) this.reset(); }
+        reset() {
+          this.x = Math.random() * width;
+          this.y = -Math.random() * 50;
+          this.speed = MIN_SPEED + Math.random() * (MAX_SPEED - MIN_SPEED);
+          this.size = 1 + Math.random() * 2.2;
+          this.color = randomColor();
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.globalAlpha = this.opacity;
+          ctx.fill();
+          if (this.speed > 1.2 && this.size > 1) {
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x - this.speed, this.y - this.speed * 1.2);
+            ctx.lineWidth = this.size * 0.6;
+            ctx.strokeStyle = this.color;
+            ctx.globalAlpha = this.opacity * 0.6;
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+        }
+      }
+      function initStars() {
+        stars = [];
+        for (let i = 0; i < STAR_COUNT; i++) {
+          stars.push(new Star(
+            Math.random() * width,
+            Math.random() * height,
+            MIN_SPEED + Math.random() * (MAX_SPEED - MIN_SPEED),
+            1 + Math.random() * 2.2,
+            randomColor()
+          ));
+        }
+      }
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+        stars.forEach(star => { star.update(); star.draw(); });
+        requestAnimationFrame(animate);
+      }
+      function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+        initStars();
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+      animate();
+    })();
+
+    window.mulaiGame = function() {
+      const serverAddress = "play.funcraft.id:25565";
+      navigator.clipboard.writeText(serverAddress);
+      alert(`🚀 IP server disalin: ${serverAddress}\nBuka Minecraft → Multiplayer → Add Server dan paste.`);
+    };
+
+    const menuBtn = document.getElementById('menuButton');
+    const dropdown = document.getElementById('loginDropdown');
+    if (menuBtn && dropdown) {
+      menuBtn.onclick = (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+      };
+      document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
