@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSKuy! — Belajar JavaScript Interaktif</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0d0f14;
+    --surface:  #13161e;
+    --card:     #181c27;
+    --border:   #242838;
+    --border2:  #2e3450;
+    --accent:   #f7c948;
+    --accent2:  #ff6b6b;
+    --green:    #4ade80;
+    --cyan:     #38bdf8;
+    --purple:   #a78bfa;
+    --pink:     #f472b6;
+    --orange:   #fb923c;
+    --text:     #e2e8f0;
+    --text-dim: #7c8db5;
+    --text-muted:#4a5578;
+    --glow:     0 0 20px rgba(247,201,72,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none; z-index: 9999;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
+  }
+  .logo-icon { font-size: 26px; animation: spin 4s linear infinite; display: inline-block; }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .logo span.accent { color: var(--accent); }
+
+  .progress-bar-wrap {
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-dim);
+  }
+  .progress-track {
+    width: 180px; height: 6px;
+    background: var(--border); border-radius: 99px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--orange));
+    border-radius: 99px; transition: width 0.5s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 0 8px rgba(247,201,72,0.5);
+  }
+  .progress-label { color: var(--accent); font-weight: 600; }
+
+  /* ── NAV TABS ── */
+  nav {
+    display: flex; gap: 4px;
+    padding: 12px 32px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-btn {
+    padding: 8px 20px; border: none; cursor: pointer;
+    border-radius: 8px; font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
+    transition: all 0.2s; background: transparent; color: var(--text-dim);
+  }
+  .nav-btn:hover { background: var(--card); color: var(--text); }
+  .nav-btn.active {
+    background: var(--accent); color: #000;
+    box-shadow: 0 0 16px rgba(247,201,72,0.3);
+  }
+  .nav-btn .badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); font-size: 10px;
+    margin-left: 6px;
+  }
+  .nav-btn.active .badge { background: rgba(0,0,0,0.2); }
+
+  /* ── MAIN ── */
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  /* ── PANELS ── */
+  .panel { display: none; animation: fadeSlide 0.3s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── WELCOME ── */
+  .welcome-hero {
+    text-align: center; padding: 48px 0 40px;
+  }
+  .welcome-hero h1 {
+    font-size: clamp(32px, 5vw, 56px); font-weight: 800;
+    line-height: 1.1; margin-bottom: 16px;
+  }
+  .welcome-hero h1 .line1 { color: var(--accent); display: block; }
+  .welcome-hero h1 .line2 { color: var(--text); display: block; }
+  .welcome-hero p {
+    color: var(--text-dim); font-size: 16px; max-width: 480px; margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+  .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    padding: 12px 28px; border: none; cursor: pointer; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+    letter-spacing: 0.3px; transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--accent); color: #000;
+    box-shadow: 0 4px 20px rgba(247,201,72,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(247,201,72,0.45); }
+  .btn-secondary {
+    background: var(--card); color: var(--text);
+    border: 1px solid var(--border2);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .quick-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;
+    margin-top: 40px;
+  }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; text-align: center;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: var(--border2); }
+  .stat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px; font-weight: 700; color: var(--accent);
+  }
+  .stat-lbl { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+  /* ── CONCEPT LIST ── */
+  .section-title {
+    font-size: 20px; font-weight: 800; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .concept-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;
+  }
+  .concept-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px; cursor: pointer;
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .concept-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(247,201,72,0.04));
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .concept-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--glow); }
+  .concept-card:hover::before { opacity: 1; }
+  .concept-icon { font-size: 24px; margin-bottom: 10px; }
+  .concept-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .concept-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  .concept-tag {
+    display: inline-block; margin-top: 10px;
+    padding: 2px 8px; border-radius: 99px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600;
+    background: rgba(247,201,72,0.12); color: var(--accent);
+  }
+
+  /* ── CONCEPT DETAIL ── */
+  .concept-detail {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 28px; margin-bottom: 20px;
+  }
+  .concept-detail h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .concept-detail .desc { color: var(--text-dim); line-height: 1.7; margin-bottom: 20px; font-size: 14px; }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: none; border: none; color: var(--text-dim); cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 13px; margin-bottom: 16px;
+    padding: 4px 0; transition: color 0.2s;
+  }
+  .back-btn:hover { color: var(--accent); }
+
+  /* Code block */
+  .code-block {
+    background: #0a0c10; border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden; margin: 16px 0;
+  }
+  .code-block-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);
+  }
+  .code-dots { display: flex; gap: 6px; }
+  .code-dots span { width: 10px; height: 10px; border-radius: 50%; }
+  .code-dots span:nth-child(1) { background: #ff5f57; }
+  .code-dots span:nth-child(2) { background: #febc2e; }
+  .code-dots span:nth-child(3) { background: #28c840; }
+  pre {
+    padding: 16px; overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7;
+  }
+  .kw  { color: var(--purple); font-weight: 600; }
+  .str { color: var(--green); }
+  .num { color: var(--cyan); }
+  .fn  { color: var(--accent); }
+  .cmt { color: var(--text-muted); font-style: italic; }
+  .op  { color: var(--pink); }
+
+  /* Key points */
+  .key-points { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+  .key-points li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13px; color: var(--text-dim); line-height: 1.6;
+  }
+  .key-points li::before {
+    content: '→'; color: var(--accent); flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* ── EXERCISE PANEL ── */
+  .exercise-sidebar {
+    display: grid; grid-template-columns: 260px 1fr; gap: 20px;
+  }
+  .ex-list {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; height: fit-content;
+    position: sticky; top: 80px;
+  }
+  .ex-list-header {
+    padding: 14px 16px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px; font-weight: 700; color: var(--text-dim);
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .ex-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; cursor: pointer; transition: background 0.15s;
+    border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .ex-item:last-child { border-bottom: none; }
+  .ex-item:hover { background: var(--surface); }
+  .ex-item.active { background: rgba(247,201,72,0.08); color: var(--accent); }
+  .ex-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--border); display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .ex-item.done .ex-num { background: var(--green); color: #000; font-weight: 700; }
+  .ex-item.active .ex-num { background: var(--accent); color: #000; font-weight: 700; }
+  .ex-name { flex: 1; line-height: 1.3; }
+  .ex-diff {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700;
+    padding: 2px 5px; border-radius: 4px; flex-shrink: 0;
+  }
+  .diff-easy  { background: rgba(74,222,128,0.15); color: var(--green); }
+  .diff-med   { background: rgba(251,146,60,0.15); color: var(--orange); }
+  .diff-hard  { background: rgba(244,114,182,0.15); color: var(--pink); }
+
+  /* Exercise content */
+  .exercise-content { display: flex; flex-direction: column; gap: 16px; }
+  .ex-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    overflow: hidden;
+  }
+  .ex-card-header {
+    padding: 18px 22px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  }
+  .ex-card-title { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+  .ex-card-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+  .ex-card-body { padding: 18px 22px; }
+
+  .io-box {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0;
+  }
+  .io-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  }
+  .io-label { color: var(--text-muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .io-val { color: var(--cyan); }
+
+  /* Code editor */
+  .editor-wrap {
+    background: #0a0c10; border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+  }
+  .editor-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .editor-tabs { display: flex; gap: 0; }
+  .editor-tab {
+    padding: 4px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--accent); color: #000; border-radius: 4px 4px 0 0;
+    font-weight: 700;
+  }
+  textarea.code-editor {
+    width: 100%; min-height: 140px;
+    background: #0a0c10; color: var(--text);
+    border: none; outline: none; resize: vertical;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7;
+    padding: 14px 16px; tab-size: 2;
+  }
+  textarea.code-editor::placeholder { color: var(--text-muted); }
+
+  /* Terminal output */
+  .terminal {
+    background: #050709; border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden; min-height: 100px;
+  }
+  .terminal-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);
+  }
+  .terminal-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .terminal-body { padding: 14px 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8; min-height: 80px; }
+  .t-line { display: flex; gap: 8px; }
+  .t-prompt { color: var(--text-muted); }
+  .t-out   { color: var(--green); }
+  .t-err   { color: var(--accent2); }
+  .t-hint  { color: var(--orange); font-style: italic; }
+  .t-sys   { color: var(--text-muted); font-style: italic; }
+  .t-success { color: var(--green); font-weight: 700; }
+
+  /* Action buttons row */
+  .action-row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px;
+  }
+  .btn-run {
+    padding: 9px 22px; background: var(--green); color: #000;
+    border: none; border-radius: 8px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+    transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+  }
+  .btn-run:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(74,222,128,0.35); }
+  .btn-run:active { transform: translateY(0); }
+  .btn-run.running { background: var(--orange); animation: pulse 0.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+  .btn-sol {
+    padding: 9px 22px; background: var(--surface); color: var(--text-dim);
+    border: 1px solid var(--border2); border-radius: 8px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; transition: all 0.2s;
+  }
+  .btn-sol:hover { border-color: var(--purple); color: var(--purple); }
+  .btn-sol.locked { opacity: 0.5; cursor: not-allowed; }
+  .btn-sol.locked:hover { border-color: var(--border2); color: var(--text-dim); }
+
+  .btn-next {
+    padding: 9px 22px; background: var(--accent); color: #000;
+    border: none; border-radius: 8px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+    transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+    margin-left: auto;
+  }
+  .btn-next:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(247,201,72,0.35); }
+
+  .btn-reset {
+    padding: 9px 16px; background: transparent; color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; transition: all 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* Solution box */
+  .solution-box {
+    background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 10px; padding: 16px; margin-top: 12px; display: none;
+  }
+  .solution-box.show { display: block; }
+  .solution-box h4 { font-size: 12px; font-weight: 700; color: var(--purple); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* Badge */
+  .badge-done {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3);
+    color: var(--green); padding: 4px 10px; border-radius: 99px;
+    font-size: 11px; font-weight: 700;
+  }
+
+  /* ── REVIEW PANEL ── */
+  .review-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 8px; margin: 16px 0 28px; }
+  .rev-cell {
+    aspect-ratio: 1; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    border: 1px solid var(--border);
+  }
+  .rev-cell.pending  { background: var(--card); color: var(--text-muted); }
+  .rev-cell.done     { background: rgba(74,222,128,0.15); border-color: var(--green); color: var(--green); }
+  .rev-cell.current  { background: rgba(247,201,72,0.15); border-color: var(--accent); color: var(--accent); animation: rev-pulse 1.5s infinite; }
+  @keyframes rev-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(247,201,72,0)} 50%{box-shadow:0 0 0 4px rgba(247,201,72,0.15)} }
+  .rev-cell:hover { transform: scale(1.08); }
+
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-big { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
+  .stat-big .n { font-family: 'JetBrains Mono', monospace; font-size: 36px; font-weight: 700; }
+  .stat-big .l { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  .n-done   { color: var(--green); }
+  .n-remain { color: var(--orange); }
+  .n-pct    { color: var(--cyan); }
+
+  .review-list { display: flex; flex-direction: column; gap: 8px; }
+  .rev-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px;
+    cursor: pointer; transition: border-color 0.2s; font-size: 13px;
+  }
+  .rev-row:hover { border-color: var(--border2); }
+  .rev-row.done { border-left: 3px solid var(--green); }
+  .rev-row.pending { border-left: 3px solid var(--border); }
+  .rev-row .rev-idx { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); width: 24px; }
+  .rev-row .rev-title { flex: 1; }
+  .rev-row .rev-status { font-size: 11px; font-weight: 700; }
+  .rev-row.done .rev-status  { color: var(--green); }
+  .rev-row.pending .rev-status { color: var(--text-muted); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    header { padding: 12px 16px; }
+    nav    { padding: 8px 16px; overflow-x: auto; }
+    main   { padding: 16px; }
+    .exercise-sidebar { grid-template-columns: 1fr; }
+    .ex-list { position: static; }
+    .io-box { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* Tooltip */
+  [data-tip] { position: relative; }
+  [data-tip]:hover::after {
+    content: attr(data-tip); position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid var(--border2); color: var(--text);
+    padding: 4px 10px; border-radius: 6px; font-size: 11px; white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace; z-index: 10;
+  }
+
+  /* Confetti canvas */
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 9998; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  .tag-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .tag {
+    padding: 3px 10px; border-radius: 99px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: rgba(56,189,248,0.1); color: var(--cyan);
+    border: 1px solid rgba(56,189,248,0.2);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<header>
+  <div class="logo">
+    <span class="logo-icon">⚡</span>
+    <span>JS<span class="accent">Kuy!</span></span>
+  </div>
+  <div class="progress-bar-wrap">
+    <span>Progress</span>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <span class="progress-label" id="progressLabel">0/30</span>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showPanel('home')" id="nav-home">🏠 Home</button>
+  <button class="nav-btn" onclick="showPanel('learn')" id="nav-learn">📖 Belajar Konsep</button>
+  <button class="nav-btn" onclick="showPanel('exercise')" id="nav-exercise">
+    💻 Latihan Soal <span class="badge" id="exBadge">30</span>
+  </button>
+  <button class="nav-btn" onclick="showPanel('review')" id="nav-review">📊 Review Progress</button>
+</nav>
+
+<main>
+
+  <!-- ══════ HOME ══════ -->
+  <div class="panel active" id="panel-home">
+    <div class="welcome-hero">
+      <h1>
+        <span class="line1">Belajar JavaScript</span>
+        <span class="line2">dari Nol, Sampai Jago 🚀</span>
+      </h1>
+      <p>Platform interaktif dengan 10 konsep, 30 soal latihan bertingkat, dan simulasi terminal langsung di browser kamu.</p>
+      <div class="hero-btns">
+        <button class="btn btn-primary" onclick="showPanel('learn')">📖 Mulai Belajar Konsep</button>
+        <button class="btn btn-secondary" onclick="showPanel('exercise')">💻 Langsung Latihan</button>
+      </div>
+    </div>
+    <div class="quick-stats">
+      <div class="stat-card">
+        <div class="stat-num">10</div>
+        <div class="stat-lbl">Konsep Dasar</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">30</div>
+        <div class="stat-lbl">Soal Latihan</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="homeCompleted">0</div>
+        <div class="stat-lbl">Soal Selesai</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="homePct">0%</div>
+        <div class="stat-lbl">Progress Kamu</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ LEARN ══════ -->
+  <div class="panel" id="panel-learn">
+    <div id="conceptList">
+      <div class="section-title">📖 Pilih Konsep</div>
+      <div class="concept-grid" id="conceptGrid"></div>
+    </div>
+    <div id="conceptDetail" style="display:none"></div>
+  </div>
+
+  <!-- ══════ EXERCISE ══════ -->
+  <div class="panel" id="panel-exercise">
+    <div class="exercise-sidebar">
+      <div class="ex-list">
+        <div class="ex-list-header">Daftar Soal</div>
+        <div id="exListItems"></div>
+      </div>
+      <div class="exercise-content" id="exerciseContent"></div>
+    </div>
+  </div>
+
+  <!-- ══════ REVIEW ══════ -->
+  <div class="panel" id="panel-review">
+    <div class="section-title">📊 Review Progress</div>
+    <div class="stats-row">
+      <div class="stat-big"><div class="n n-done" id="rvDone">0</div><div class="l">Selesai ✅</div></div>
+      <div class="stat-big"><div class="n n-remain" id="rvRemain">30</div><div class="l">Tersisa 🎯</div></div>
+      <div class="stat-big"><div class="n n-pct" id="rvPct">0%</div><div class="l">Progress 📈</div></div>
+    </div>
+    <div class="section-title">Peta Soal</div>
+    <div class="review-grid" id="reviewGrid"></div>
+    <div class="section-title">Detail Per Soal</div>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+//  DATA: KONSEP
+// ─────────────────────────────────────────────
+const concepts = [
+  {
+    id: 'console',
+    icon: '🖨️',
+    title: 'console.log()',
+    short: 'Cara cetak output ke console',
+    tag: 'output',
+    color: 'var(--green)',
+    desc: `<code>console.log()</code> adalah fungsi bawaan JavaScript yang digunakan untuk mencetak/menampilkan nilai ke konsol browser atau terminal Node.js. Ini adalah teman pertama setiap programmer JavaScript!`,
+    points: [
+      'Bisa mencetak teks (string), angka, boolean, array, object, dan lainnya',
+      'Bisa mencetak banyak nilai sekaligus dipisah koma: console.log(a, b, c)',
+      'Sangat berguna untuk debugging — cek nilai variabel di tengah program',
+      'Di browser: buka DevTools (F12) → tab Console untuk melihat outputnya',
+    ],
+    code: `<span class="cmt">// Cetak teks biasa</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Halo, dunia!"</span>);
+
+<span class="cmt">// Cetak angka</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="num">42</span>);
+
+<span class="cmt">// Cetak banyak nilai sekaligus</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Nama:"</span>, <span class="str">"Budi"</span>, <span class="str">"Umur:"</span>, <span class="num">20</span>);
+
+<span class="cmt">// Cetak hasil operasi</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="num">5</span> <span class="op">+</span> <span class="num">3</span>); <span class="cmt">// Output: 8</span>`
+  },
+  {
+    id: 'variables',
+    icon: '📦',
+    title: 'Variabel: let, const, var',
+    short: 'Menyimpan data dalam program',
+    tag: 'variabel',
+    color: 'var(--cyan)',
+    desc: `Variabel adalah wadah untuk menyimpan data. JavaScript punya 3 cara deklarasi variabel: <code>var</code> (lama), <code>let</code> (modern, bisa diubah), dan <code>const</code> (modern, tidak bisa diubah/konstanta).`,
+    points: [
+      'let: deklarasi variabel yang nilainya BISA diubah (direkomendasikan)',
+      'const: deklarasi variabel yang nilainya TIDAK bisa diubah setelah ditetapkan',
+      'var: cara lama, hindari penggunaan var di kode modern',
+      'Nama variabel bisa huruf, angka, _, $. Tidak boleh mulai dengan angka',
+      'Gunakan camelCase untuk nama variabel: namaLengkap, totalHarga',
+    ],
+    code: `<span class="cmt">// let — bisa diubah nilainya</span>
+<span class="kw">let</span> nama <span class="op">=</span> <span class="str">"Budi"</span>;
+nama <span class="op">=</span> <span class="str">"Siti"</span>; <span class="cmt">// OK!</span>
+<span class="fn">console</span>.<span class="fn">log</span>(nama); <span class="cmt">// "Siti"</span>
+
+<span class="cmt">// const — tidak bisa diubah</span>
+<span class="kw">const</span> PI <span class="op">=</span> <span class="num">3.14159</span>;
+<span class="cmt">// PI = 3; ← ERROR! Tidak boleh</span>
+
+<span class="cmt">// Banyak variabel sekaligus</span>
+<span class="kw">let</span> x <span class="op">=</span> <span class="num">10</span>, y <span class="op">=</span> <span class="num">20</span>, z <span class="op">=</span> <span class="num">30</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(x <span class="op">+</span> y <span class="op">+</span> z); <span class="cmt">// 60</span>`
+  },
+  {
+    id: 'datatypes',
+    icon: '🧬',
+    title: 'Tipe Data',
+    short: 'Jenis-jenis nilai dalam JavaScript',
+    tag: 'tipe data',
+    color: 'var(--purple)',
+    desc: `JavaScript memiliki beberapa tipe data bawaan. Ada 2 kategori besar: <strong>Primitive</strong> (string, number, boolean, null, undefined) dan <strong>Reference</strong> (object, array, function).`,
+    points: [
+      'String: teks, ditulis dalam kutip tunggal \' \', ganda " ", atau backtick ` `',
+      'Number: semua angka (bulat dan desimal)',
+      'Boolean: hanya true atau false',
+      'null: nilai yang sengaja dikosongkan',
+      'undefined: variabel yang belum diberi nilai',
+      'Gunakan typeof untuk cek tipe data suatu nilai',
+    ],
+    code: `<span class="kw">let</span> teks   <span class="op">=</span> <span class="str">"Halo"</span>;          <span class="cmt">// string</span>
+<span class="kw">let</span> angka  <span class="op">=</span> <span class="num">42</span>;             <span class="cmt">// number</span>
+<span class="kw">let</span> harga  <span class="op">=</span> <span class="num">19.99</span>;          <span class="cmt">// number (desimal)</span>
+<span class="kw">let</span> lulus  <span class="op">=</span> <span class="kw">true</span>;           <span class="cmt">// boolean</span>
+<span class="kw">let</span> kosong <span class="op">=</span> <span class="kw">null</span>;           <span class="cmt">// null</span>
+<span class="kw">let</span> belum;                    <span class="cmt">// undefined</span>
+
+<span class="cmt">// Cek tipe data</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">typeof</span> teks);   <span class="cmt">// "string"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">typeof</span> angka);  <span class="cmt">// "number"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">typeof</span> lulus);  <span class="cmt">// "boolean"</span>`
+  },
+  {
+    id: 'strings',
+    icon: '🔤',
+    title: 'String & Method-nya',
+    short: 'Manipulasi teks di JavaScript',
+    tag: 'string',
+    color: 'var(--green)',
+    desc: `String adalah tipe data untuk teks. JavaScript menyediakan banyak method (fungsi bawaan) untuk memanipulasi string, seperti mengubah huruf besar/kecil, memotong, mencari, dll.`,
+    points: [
+      'Template literal (backtick) memungkinkan interpolasi variabel: `Halo ${nama}`',
+      '.length → panjang string',
+      '.toUpperCase() / .toLowerCase() → ubah besar/kecil',
+      '.trim() → hapus spasi di awal & akhir',
+      '.includes(str) → cek apakah mengandung substring',
+      '.split(sep) → pecah string jadi array',
+    ],
+    code: `<span class="kw">let</span> nama <span class="op">=</span> <span class="str">"  Budi Santoso  "</span>;
+
+<span class="fn">console</span>.<span class="fn">log</span>(nama.<span class="fn">trim</span>());          <span class="cmt">// "Budi Santoso"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(nama.<span class="fn">toUpperCase</span>());   <span class="cmt">// "  BUDI SANTOSO  "</span>
+<span class="fn">console</span>.<span class="fn">log</span>(nama.<span class="fn">length</span>);          <span class="cmt">// 16</span>
+
+<span class="cmt">// Template literal (sangat berguna!)</span>
+<span class="kw">let</span> umur <span class="op">=</span> <span class="num">20</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">\`Nama saya Budi, umur \${umur} tahun\`</span>);
+<span class="cmt">// "Nama saya Budi, umur 20 tahun"</span>
+
+<span class="cmt">// Split & includes</span>
+<span class="kw">let</span> kalimat <span class="op">=</span> <span class="str">"aku suka javascript"</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(kalimat.<span class="fn">includes</span>(<span class="str">"suka"</span>)); <span class="cmt">// true</span>
+<span class="fn">console</span>.<span class="fn">log</span>(kalimat.<span class="fn">split</span>(<span class="str">" "</span>));      <span class="cmt">// ["aku","suka","javascript"]</span>`
+  },
+  {
+    id: 'operators',
+    icon: '🔢',
+    title: 'Operator',
+    short: 'Aritmatika, perbandingan, logika',
+    tag: 'operator',
+    color: 'var(--orange)',
+    desc: `Operator digunakan untuk melakukan operasi pada nilai. Ada operator aritmatika (+, -, *, /), perbandingan (==, ===, !=, <, >), dan logika (&&, ||, !).`,
+    points: [
+      'Gunakan === (triple equal) bukan == untuk perbandingan yang akurat',
+      '% (modulo) = sisa pembagian. 10 % 3 = 1',
+      '** (pangkat/power): 2 ** 3 = 8',
+      '&& (AND): true hanya jika keduanya true',
+      '|| (OR): true jika salah satu true',
+      '! (NOT): membalik nilai boolean',
+    ],
+    code: `<span class="cmt">// Aritmatika</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="num">10</span> <span class="op">+</span> <span class="num">5</span>);   <span class="cmt">// 15</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="num">10</span> <span class="op">%</span> <span class="num">3</span>);   <span class="cmt">// 1  (sisa bagi)</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="num">2</span> <span class="op">**</span> <span class="num">10</span>);  <span class="cmt">// 1024</span>
+
+<span class="cmt">// Perbandingan (selalu pakai ===)</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="num">5</span> <span class="op">===</span> <span class="num">5</span>);   <span class="cmt">// true</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"5"</span> <span class="op">===</span> <span class="num">5</span>); <span class="cmt">// false (beda tipe!)</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="num">10</span> <span class="op">></span> <span class="num">7</span>);   <span class="cmt">// true</span>
+
+<span class="cmt">// Logika</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">true</span> <span class="op">&&</span> <span class="kw">false</span>); <span class="cmt">// false</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">true</span> <span class="op">||</span> <span class="kw">false</span>); <span class="cmt">// true</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="op">!</span><span class="kw">true</span>);          <span class="cmt">// false</span>`
+  },
+  {
+    id: 'conditionals',
+    icon: '🔀',
+    title: 'Kondisional (if/else)',
+    short: 'Mengambil keputusan dalam kode',
+    tag: 'kondisional',
+    color: 'var(--cyan)',
+    desc: `Kondisional memungkinkan program mengambil keputusan berdasarkan kondisi tertentu. Gunakan <code>if</code>, <code>else if</code>, dan <code>else</code> untuk mengontrol alur program.`,
+    points: [
+      'if (kondisi) { ... } — eksekusi jika kondisi true',
+      'else { ... } — eksekusi jika kondisi false',
+      'else if (kondisi2) — cek kondisi tambahan',
+      'Ternary operator: kondisi ? nilaiJika True : nilaiJikaFalse',
+      'switch-case untuk banyak kemungkinan nilai',
+    ],
+    code: `<span class="kw">let</span> nilai <span class="op">=</span> <span class="num">75</span>;
+
+<span class="kw">if</span> (nilai <span class="op">>=</span> <span class="num">90</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"A - Sempurna!"</span>);
+} <span class="kw">else if</span> (nilai <span class="op">>=</span> <span class="num">75</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"B - Bagus!"</span>);   <span class="cmt">// ← ini yang jalan</span>
+} <span class="kw">else if</span> (nilai <span class="op">>=</span> <span class="num">60</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"C - Cukup"</span>);
+} <span class="kw">else</span> {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Perlu belajar lagi!"</span>);
+}
+
+<span class="cmt">// Ternary (ringkasan if-else)</span>
+<span class="kw">let</span> status <span class="op">=</span> nilai <span class="op">>=</span> <span class="num">60</span> <span class="op">?</span> <span class="str">"Lulus"</span> <span class="op">:</span> <span class="str">"Tidak Lulus"</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(status); <span class="cmt">// "Lulus"</span>`
+  },
+  {
+    id: 'loops',
+    icon: '🔁',
+    title: 'Loop (Perulangan)',
+    short: 'Ulangi kode tanpa copy-paste',
+    tag: 'loop',
+    color: 'var(--pink)',
+    desc: `Loop digunakan untuk mengulangi blok kode beberapa kali tanpa harus menulis ulang. Ada beberapa jenis loop di JavaScript: <code>for</code>, <code>while</code>, <code>do-while</code>, dan <code>for...of</code>.`,
+    points: [
+      'for loop: paling umum, cocok saat tahu berapa kali berulang',
+      'while loop: berulang selama kondisi true',
+      'for...of: iterasi elemen array dengan lebih ringkas',
+      'break: hentikan loop lebih awal',
+      'continue: skip iterasi saat ini, lanjut ke berikutnya',
+    ],
+    code: `<span class="cmt">// for loop klasik</span>
+<span class="kw">for</span> (<span class="kw">let</span> i <span class="op">=</span> <span class="num">1</span>; i <span class="op"><=</span> <span class="num">5</span>; i<span class="op">++</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">\`Hitungan ke-\${i}\`</span>);
+}
+
+<span class="cmt">// while loop</span>
+<span class="kw">let</span> n <span class="op">=</span> <span class="num">1</span>;
+<span class="kw">while</span> (n <span class="op"><=</span> <span class="num">3</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"n ="</span>, n);
+  n<span class="op">++</span>;
+}
+
+<span class="cmt">// for...of (untuk array)</span>
+<span class="kw">const</span> buah <span class="op">=</span> [<span class="str">"apel"</span>, <span class="str">"mangga"</span>, <span class="str">"jeruk"</span>];
+<span class="kw">for</span> (<span class="kw">const</span> b <span class="kw">of</span> buah) {
+  <span class="fn">console</span>.<span class="fn">log</span>(b);
+}`
+  },
+  {
+    id: 'functions',
+    icon: '⚙️',
+    title: 'Function (Fungsi)',
+    short: 'Bungkus kode agar bisa dipakai ulang',
+    tag: 'fungsi',
+    color: 'var(--accent)',
+    desc: `Function adalah blok kode yang bisa dipanggil berulang kali. Function membuat kode lebih terorganisir, tidak ada pengulangan, dan mudah diperbaiki. JavaScript punya beberapa cara menulis function.`,
+    points: [
+      'function declaration: function nama() { ... }',
+      'function expression: const fn = function() { ... }',
+      'arrow function (ES6+): const fn = () => { ... }',
+      'Parameter: nilai yang dikirim ke function',
+      'Return value: nilai yang dikembalikan function',
+      'Default parameter: function salam(nama = "Teman") { ... }',
+    ],
+    code: `<span class="cmt">// Function declaration</span>
+<span class="kw">function</span> <span class="fn">sapa</span>(nama) {
+  <span class="kw">return</span> <span class="str">\`Halo, \${nama}!\`</span>;
+}
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">sapa</span>(<span class="str">"Budi"</span>)); <span class="cmt">// "Halo, Budi!"</span>
+
+<span class="cmt">// Arrow function (lebih ringkas)</span>
+<span class="kw">const</span> <span class="fn">tambah</span> <span class="op">=</span> (a, b) <span class="op">=></span> a <span class="op">+</span> b;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">tambah</span>(<span class="num">5</span>, <span class="num">3</span>)); <span class="cmt">// 8</span>
+
+<span class="cmt">// Default parameter</span>
+<span class="kw">function</span> <span class="fn">perkenalan</span>(nama <span class="op">=</span> <span class="str">"Teman"</span>, kota <span class="op">=</span> <span class="str">"Jakarta"</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">\`Saya \${nama} dari \${kota}\`</span>);
+}
+<span class="fn">perkenalan</span>(<span class="str">"Siti"</span>); <span class="cmt">// "Saya Siti dari Jakarta"</span>`
+  },
+  {
+    id: 'arrays',
+    icon: '📋',
+    title: 'Array',
+    short: 'Kumpulan data dalam satu variabel',
+    tag: 'array',
+    color: 'var(--green)',
+    desc: `Array adalah tipe data yang menyimpan kumpulan nilai dalam satu variabel, berurutan dan terindeks mulai dari 0. JavaScript menyediakan banyak method array yang sangat powerful.`,
+    points: [
+      'Array dimulai dari index 0, bukan 1!',
+      '.push() → tambah di akhir | .pop() → hapus dari akhir',
+      '.unshift() → tambah di awal | .shift() → hapus dari awal',
+      '.map() → transformasi setiap elemen',
+      '.filter() → saring elemen berdasarkan kondisi',
+      '.reduce() → akumulasi nilai seluruh array',
+    ],
+    code: `<span class="kw">const</span> angka <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>];
+
+<span class="fn">console</span>.<span class="fn">log</span>(angka[<span class="num">0</span>]);        <span class="cmt">// 1 (index ke-0)</span>
+<span class="fn">console</span>.<span class="fn">log</span>(angka.<span class="fn">length</span>);    <span class="cmt">// 5</span>
+
+<span class="cmt">// push & pop</span>
+angka.<span class="fn">push</span>(<span class="num">6</span>);               <span class="cmt">// [1,2,3,4,5,6]</span>
+angka.<span class="fn">pop</span>();                <span class="cmt">// [1,2,3,4,5]</span>
+
+<span class="cmt">// map — kalikan 2 semua elemen</span>
+<span class="kw">const</span> x2 <span class="op">=</span> angka.<span class="fn">map</span>(n <span class="op">=></span> n <span class="op">*</span> <span class="num">2</span>);
+<span class="fn">console</span>.<span class="fn">log</span>(x2); <span class="cmt">// [2,4,6,8,10]</span>
+
+<span class="cmt">// filter — ambil yang genap saja</span>
+<span class="kw">const</span> genap <span class="op">=</span> angka.<span class="fn">filter</span>(n <span class="op">=></span> n <span class="op">%</span> <span class="num">2</span> <span class="op">===</span> <span class="num">0</span>);
+<span class="fn">console</span>.<span class="fn">log</span>(genap); <span class="cmt">// [2,4]</span>`
+  },
+  {
+    id: 'objects',
+    icon: '🗂️',
+    title: 'Object',
+    short: 'Data terstruktur dengan key-value',
+    tag: 'object',
+    color: 'var(--purple)',
+    desc: `Object adalah kumpulan pasangan key-value. Bayangkan seperti kartu identitas — ada nama, umur, kota, dll. Object sangat fundamental di JavaScript karena hampir semua hal adalah object!`,
+    points: [
+      'Akses property: obj.namaKey atau obj["namaKey"]',
+      'Tambah property baru: obj.key = nilai',
+      'Hapus property: delete obj.key',
+      'Object destructuring: const { nama, umur } = orang',
+      'Spread operator: { ...obj1, ...obj2 }',
+      'Object.keys(), Object.values(), Object.entries() untuk iterasi',
+    ],
+    code: `<span class="kw">const</span> mahasiswa <span class="op">=</span> {
+  nama: <span class="str">"Budi"</span>,
+  umur: <span class="num">20</span>,
+  jurusan: <span class="str">"Informatika"</span>,
+  <span class="fn">sapa</span>() {
+    <span class="kw">return</span> <span class="str">\`Halo, aku \${<span class="kw">this</span>.nama}\`</span>;
+  }
+};
+
+<span class="fn">console</span>.<span class="fn">log</span>(mahasiswa.nama);        <span class="cmt">// "Budi"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(mahasiswa[<span class="str">"umur"</span>]);    <span class="cmt">// 20</span>
+<span class="fn">console</span>.<span class="fn">log</span>(mahasiswa.<span class="fn">sapa</span>());     <span class="cmt">// "Halo, aku Budi"</span>
+
+<span class="cmt">// Destructuring</span>
+<span class="kw">const</span> { nama, jurusan } <span class="op">=</span> mahasiswa;
+<span class="fn">console</span>.<span class="fn">log</span>(nama, jurusan); <span class="cmt">// "Budi" "Informatika"</span>`
+  },
+];
+
+// ─────────────────────────────────────────────
+//  DATA: 30 SOAL LATIHAN
+// ─────────────────────────────────────────────
+const exercises = [
+  // EASY (1–10)
+  {
+    id: 1, title: "Halo Dunia!", topic: "console.log", diff: "easy",
+    desc: "Tampilkan teks <code>\"Halo, JavaScript!\"</code> ke console.",
+    hint: "Gunakan console.log() dengan teks di dalam tanda kutip.",
+    inputEx: "—", outputEx: "Halo, JavaScript!",
+    starter: `// Tulis kode kamu di sini\n`,
+    solution: `console.log("Halo, JavaScript!");`,
+    check: (out) => out.includes("Halo, JavaScript!"),
+  },
+  {
+    id: 2, title: "Variabel Pertamamu", topic: "variabel", diff: "easy",
+    desc: "Buat variabel <code>nama</code> dengan nilai nama kamu, lalu tampilkan ke console.",
+    hint: "Gunakan let atau const untuk deklarasi variabel.",
+    inputEx: "—", outputEx: "Nama: [nama kamu]",
+    starter: `let nama = "...";\nconsole.log("Nama:", nama);\n`,
+    solution: `let nama = "Budi";\nconsole.log("Nama:", nama);`,
+    check: (out) => out.includes("Nama:"),
+  },
+  {
+    id: 3, title: "Penjumlahan Sederhana", topic: "operator", diff: "easy",
+    desc: "Buat dua variabel angka, jumlahkan, dan tampilkan hasilnya.",
+    hint: "Deklarasikan dua variabel, lalu tampilkan a + b.",
+    inputEx: "a = 7, b = 3", outputEx: "10",
+    starter: `let a = 7;\nlet b = 3;\n// tampilkan hasil penjumlahan\n`,
+    solution: `let a = 7;\nlet b = 3;\nconsole.log(a + b);`,
+    check: (out) => out.trim() === "10",
+  },
+  {
+    id: 4, title: "Cek Tipe Data", topic: "tipe data", diff: "easy",
+    desc: "Tampilkan tipe data dari nilai <code>\"JavaScript\"</code>, <code>42</code>, dan <code>true</code>.",
+    hint: "Gunakan typeof sebelum nilai.",
+    inputEx: "—", outputEx: "string\nnumber\nboolean",
+    starter: `console.log(typeof "JavaScript");\n// tambahkan dua lagi\n`,
+    solution: `console.log(typeof "JavaScript");\nconsole.log(typeof 42);\nconsole.log(typeof true);`,
+    check: (out) => out.includes("string") && out.includes("number") && out.includes("boolean"),
+  },
+  {
+    id: 5, title: "Template Literal", topic: "string", diff: "easy",
+    desc: "Buat variabel <code>nama</code> dan <code>umur</code>, lalu tampilkan: <code>Saya [nama], umur [umur] tahun.</code>",
+    hint: "Pakai backtick dan ${variabel} untuk template literal.",
+    inputEx: "nama='Andi', umur=21", outputEx: "Saya Andi, umur 21 tahun.",
+    starter: `let nama = "Andi";\nlet umur = 21;\n// gunakan template literal\n`,
+    solution: `let nama = "Andi";\nlet umur = 21;\nconsole.log(\`Saya \${nama}, umur \${umur} tahun.\`);`,
+    check: (out) => out.includes("tahun"),
+  },
+  {
+    id: 6, title: "Sisa Bagi (Modulo)", topic: "operator", diff: "easy",
+    desc: "Cek apakah angka <code>17</code> adalah bilangan genap atau ganjil menggunakan operator <code>%</code>.",
+    hint: "Bilangan genap: angka % 2 === 0. Ganjil jika tidak.",
+    inputEx: "17", outputEx: "Ganjil",
+    starter: `let angka = 17;\n// gunakan if dan % untuk cek\n`,
+    solution: `let angka = 17;\nif (angka % 2 === 0) {\n  console.log("Genap");\n} else {\n  console.log("Ganjil");\n}`,
+    check: (out) => out.includes("Ganjil"),
+  },
+  {
+    id: 7, title: "If-Else Nilai", topic: "kondisional", diff: "easy",
+    desc: "Buat program yang mencetak <code>\"Lulus\"</code> jika nilai ≥ 60, <code>\"Tidak Lulus\"</code> jika di bawah itu.",
+    hint: "Gunakan if (nilai >= 60) { ... } else { ... }",
+    inputEx: "nilai = 75", outputEx: "Lulus",
+    starter: `let nilai = 75;\n// tulis kondisi di sini\n`,
+    solution: `let nilai = 75;\nif (nilai >= 60) {\n  console.log("Lulus");\n} else {\n  console.log("Tidak Lulus");\n}`,
+    check: (out) => out.includes("Lulus"),
+  },
+  {
+    id: 8, title: "For Loop Pertama", topic: "loop", diff: "easy",
+    desc: "Tampilkan angka 1 sampai 5 menggunakan for loop.",
+    hint: "for (let i = 1; i <= 5; i++) { console.log(i); }",
+    inputEx: "—", outputEx: "1\n2\n3\n4\n5",
+    starter: `// Gunakan for loop\n`,
+    solution: `for (let i = 1; i <= 5; i++) {\n  console.log(i);\n}`,
+    check: (out) => {
+      const lines = out.trim().split("\n").map(s => s.trim());
+      return lines.includes("1") && lines.includes("5") && lines.length >= 5;
+    },
+  },
+  {
+    id: 9, title: "Fungsi Sapa", topic: "fungsi", diff: "easy",
+    desc: "Buat fungsi <code>sapa(nama)</code> yang menerima nama dan mengembalikan <code>\"Halo, [nama]!\"</code>.",
+    hint: "function sapa(nama) { return `Halo, ${nama}!`; }",
+    inputEx: "sapa('Dewi')", outputEx: "Halo, Dewi!",
+    starter: `function sapa(nama) {\n  // tulis return di sini\n}\n\nconsole.log(sapa("Dewi"));\n`,
+    solution: `function sapa(nama) {\n  return \`Halo, \${nama}!\`;\n}\n\nconsole.log(sapa("Dewi"));`,
+    check: (out) => out.includes("Halo, Dewi!"),
+  },
+  {
+    id: 10, title: "Array Pertama", topic: "array", diff: "easy",
+    desc: "Buat array <code>buah</code> berisi 3 jenis buah, tampilkan semua menggunakan for loop.",
+    hint: "Iterasi dengan for(let i=0; i<buah.length; i++) { console.log(buah[i]); }",
+    inputEx: "—", outputEx: "apel\njeruk\nmangga",
+    starter: `const buah = ["apel", "jeruk", "mangga"];\n// loop dan tampilkan\n`,
+    solution: `const buah = ["apel", "jeruk", "mangga"];\nfor (let i = 0; i < buah.length; i++) {\n  console.log(buah[i]);\n}`,
+    check: (out) => out.includes("apel") && out.includes("jeruk") && out.includes("mangga"),
+  },
+  // MEDIUM (11–20)
+  {
+    id: 11, title: "String Method Kombo", topic: "string", diff: "medium",
+    desc: "Dari string <code>\"  belajar JavaScript itu SERU!  \"</code>, tampilkan versi yang sudah di-trim dan di-uppercase.",
+    hint: "Gabungkan .trim() dan .toUpperCase(). Bisa di-chain: str.trim().toUpperCase()",
+    inputEx: "\"  belajar JavaScript itu SERU!  \"", outputEx: "BELAJAR JAVASCRIPT ITU SERU!",
+    starter: `let teks = "  belajar JavaScript itu SERU!  ";\n// chain method di sini\n`,
+    solution: `let teks = "  belajar JavaScript itu SERU!  ";\nconsole.log(teks.trim().toUpperCase());`,
+    check: (out) => out.includes("BELAJAR JAVASCRIPT ITU SERU!"),
+  },
+  {
+    id: 12, title: "FizzBuzz Mini", topic: "kondisional", diff: "medium",
+    desc: "Untuk angka 1-15: cetak \"Fizz\" jika kelipatan 3, \"Buzz\" jika kelipatan 5, \"FizzBuzz\" jika keduanya.",
+    hint: "Cek kelipatan 15 DULU (FizzBuzz), baru 3 dan 5.",
+    inputEx: "1 sampai 15", outputEx: "1, 2, Fizz, 4, Buzz, Fizz, 7, ...",
+    starter: `for (let i = 1; i <= 15; i++) {\n  // tulis kondisi di sini\n}\n`,
+    solution: `for (let i = 1; i <= 15; i++) {\n  if (i % 15 === 0) console.log("FizzBuzz");\n  else if (i % 3 === 0) console.log("Fizz");\n  else if (i % 5 === 0) console.log("Buzz");\n  else console.log(i);\n}`,
+    check: (out) => out.includes("Fizz") && out.includes("Buzz") && out.includes("FizzBuzz"),
+  },
+  {
+    id: 13, title: "Fungsi Pangkat", topic: "fungsi", diff: "medium",
+    desc: "Buat fungsi <code>pangkat(basis, eksponen)</code> yang menghitung <code>basis ** eksponen</code>.",
+    hint: "Gunakan operator ** atau Math.pow(). Panggil pangkat(2, 8) hasilnya 256.",
+    inputEx: "pangkat(2, 8)", outputEx: "256",
+    starter: `function pangkat(basis, eksponen) {\n  // tulis di sini\n}\n\nconsole.log(pangkat(2, 8));\n`,
+    solution: `function pangkat(basis, eksponen) {\n  return basis ** eksponen;\n}\n\nconsole.log(pangkat(2, 8));`,
+    check: (out) => out.trim() === "256",
+  },
+  {
+    id: 14, title: "Filter Array Genap", topic: "array", diff: "medium",
+    desc: "Dari array <code>[1,2,3,4,5,6,7,8,9,10]</code>, filter dan tampilkan hanya angka genap.",
+    hint: "Gunakan .filter(n => n % 2 === 0) lalu tampilkan hasilnya.",
+    inputEx: "[1,2,3,4,5,6,7,8,9,10]", outputEx: "[2,4,6,8,10]",
+    starter: `const angka = [1,2,3,4,5,6,7,8,9,10];\n// gunakan .filter()\n`,
+    solution: `const angka = [1,2,3,4,5,6,7,8,9,10];\nconst genap = angka.filter(n => n % 2 === 0);\nconsole.log(genap);`,
+    check: (out) => out.includes("2") && out.includes("4") && out.includes("10") && !out.includes("1,") && !out.includes(" 1"),
+  },
+  {
+    id: 15, title: "Object Mahasiswa", topic: "object", diff: "medium",
+    desc: "Buat object <code>mahasiswa</code> dengan property nama, nim, ipk. Tampilkan setiap propertinya.",
+    hint: "Akses dengan mahasiswa.nama, mahasiswa.nim, mahasiswa.ipk.",
+    inputEx: "—", outputEx: "Nama: Rina\nNIM: 12345\nIPK: 3.8",
+    starter: `const mahasiswa = {\n  nama: "Rina",\n  nim: "12345",\n  ipk: 3.8\n};\n// tampilkan tiap property\n`,
+    solution: `const mahasiswa = {\n  nama: "Rina",\n  nim: "12345",\n  ipk: 3.8\n};\nconsole.log("Nama:", mahasiswa.nama);\nconsole.log("NIM:", mahasiswa.nim);\nconsole.log("IPK:", mahasiswa.ipk);`,
+    check: (out) => out.includes("Rina") && out.includes("12345") && out.includes("3.8"),
+  },
+  {
+    id: 16, title: "Array Map Kali 3", topic: "array", diff: "medium",
+    desc: "Gunakan <code>.map()</code> untuk mengalikan semua elemen array dengan 3.",
+    hint: "const hasil = angka.map(n => n * 3);",
+    inputEx: "[1, 2, 3, 4, 5]", outputEx: "[3, 6, 9, 12, 15]",
+    starter: `const angka = [1, 2, 3, 4, 5];\n// gunakan .map()\n`,
+    solution: `const angka = [1, 2, 3, 4, 5];\nconst hasil = angka.map(n => n * 3);\nconsole.log(hasil);`,
+    check: (out) => out.includes("3") && out.includes("6") && out.includes("15"),
+  },
+  {
+    id: 17, title: "Fungsi Faktorial", topic: "fungsi", diff: "medium",
+    desc: "Buat fungsi <code>faktorial(n)</code> yang menghitung n! menggunakan loop.",
+    hint: "Mulai dari hasil=1, kalikan dengan i dari 1 sampai n.",
+    inputEx: "faktorial(5)", outputEx: "120",
+    starter: `function faktorial(n) {\n  let hasil = 1;\n  // loop dari 1 sampai n\n  return hasil;\n}\n\nconsole.log(faktorial(5));\n`,
+    solution: `function faktorial(n) {\n  let hasil = 1;\n  for (let i = 1; i <= n; i++) {\n    hasil *= i;\n  }\n  return hasil;\n}\n\nconsole.log(faktorial(5));`,
+    check: (out) => out.trim() === "120",
+  },
+  {
+    id: 18, title: "Cari Nilai Terbesar", topic: "array", diff: "medium",
+    desc: "Temukan nilai terbesar dalam array tanpa menggunakan Math.max().",
+    hint: "Loop array, simpan nilai terbesar dalam variabel 'maks'.",
+    inputEx: "[3, 7, 2, 9, 1, 5]", outputEx: "9",
+    starter: `const arr = [3, 7, 2, 9, 1, 5];\nlet maks = arr[0];\n// loop dan bandingkan\nconsole.log(maks);\n`,
+    solution: `const arr = [3, 7, 2, 9, 1, 5];\nlet maks = arr[0];\nfor (let i = 1; i < arr.length; i++) {\n  if (arr[i] > maks) maks = arr[i];\n}\nconsole.log(maks);`,
+    check: (out) => out.trim() === "9",
+  },
+  {
+    id: 19, title: "Object Destructuring", topic: "object", diff: "medium",
+    desc: "Gunakan destructuring untuk mengambil <code>nama</code> dan <code>kota</code> dari object orang.",
+    hint: "const { nama, kota } = orang;",
+    inputEx: "{ nama: 'Fajar', umur: 25, kota: 'Bandung' }", outputEx: "Fajar tinggal di Bandung",
+    starter: `const orang = { nama: "Fajar", umur: 25, kota: "Bandung" };\n// destructuring di sini\n`,
+    solution: `const orang = { nama: "Fajar", umur: 25, kota: "Bandung" };\nconst { nama, kota } = orang;\nconsole.log(\`\${nama} tinggal di \${kota}\`);`,
+    check: (out) => out.includes("Fajar") && out.includes("Bandung"),
+  },
+  {
+    id: 20, title: "While Loop Countdown", topic: "loop", diff: "medium",
+    desc: "Buat countdown dari 10 ke 1 menggunakan while loop, tampilkan setiap angka.",
+    hint: "let n = 10; while (n > 0) { console.log(n); n--; }",
+    inputEx: "—", outputEx: "10\n9\n8\n...\n1",
+    starter: `let n = 10;\n// while loop countdown\n`,
+    solution: `let n = 10;\nwhile (n > 0) {\n  console.log(n);\n  n--;\n}`,
+    check: (out) => {
+      const lines = out.trim().split("\n").map(s => s.trim());
+      return lines[0] === "10" && lines[lines.length - 1] === "1";
+    },
+  },
+  // HARDER MEDIUM (21–30)
+  {
+    id: 21, title: "Balik String", topic: "string", diff: "medium",
+    desc: "Balik urutan karakter dalam string <code>\"JavaScript\"</code> tanpa menggunakan .reverse()... eh boleh deh!",
+    hint: "Pecah dulu: split(''), lalu reverse(), lalu join('').",
+    inputEx: "\"JavaScript\"", outputEx: "tpircSavaJ",
+    starter: `let teks = "JavaScript";\n// balik string\n`,
+    solution: `let teks = "JavaScript";\nlet balik = teks.split("").reverse().join("");\nconsole.log(balik);`,
+    check: (out) => out.includes("tpircSavaJ"),
+  },
+  {
+    id: 22, title: "Jumlahkan Array", topic: "array", diff: "medium",
+    desc: "Gunakan <code>.reduce()</code> untuk menjumlahkan semua elemen array.",
+    hint: "arr.reduce((total, n) => total + n, 0)",
+    inputEx: "[1, 2, 3, 4, 5]", outputEx: "15",
+    starter: `const angka = [1, 2, 3, 4, 5];\n// gunakan .reduce()\n`,
+    solution: `const angka = [1, 2, 3, 4, 5];\nconst total = angka.reduce((acc, n) => acc + n, 0);\nconsole.log(total);`,
+    check: (out) => out.trim() === "15",
+  },
+  {
+    id: 23, title: "Object Method", topic: "object", diff: "medium",
+    desc: "Tambahkan method <code>perkenalan()</code> ke object <code>guru</code> yang mengembalikan string perkenalan.",
+    hint: "Method adalah function di dalam object. Gunakan this.nama untuk akses properti.",
+    inputEx: "guru.perkenalan()", outputEx: "Saya Pak Budi, mengajar Matematika",
+    starter: `const guru = {\n  nama: "Pak Budi",\n  mapel: "Matematika",\n  // tambah method perkenalan di sini\n};\n\nconsole.log(guru.perkenalan());\n`,
+    solution: `const guru = {\n  nama: "Pak Budi",\n  mapel: "Matematika",\n  perkenalan() {\n    return \`Saya \${this.nama}, mengajar \${this.mapel}\`;\n  }\n};\n\nconsole.log(guru.perkenalan());`,
+    check: (out) => out.includes("Pak Budi") && out.includes("Matematika"),
+  },
+  {
+    id: 24, title: "Arrow Function Chain", topic: "fungsi", diff: "medium",
+    desc: "Buat arrow function <code>kaliDua</code> dan <code>tambahSatu</code>, lalu gunakan keduanya pada angka 5.",
+    hint: "const kaliDua = n => n * 2; const tambahSatu = n => n + 1;",
+    inputEx: "5", outputEx: "11",
+    starter: `const kaliDua = n => n * 2;\nconst tambahSatu = n => n + 1;\n\n// hasilnya harus 11: 5*2+1 = 11\nconsole.log(tambahSatu(kaliDua(5)));\n`,
+    solution: `const kaliDua = n => n * 2;\nconst tambahSatu = n => n + 1;\nconsole.log(tambahSatu(kaliDua(5)));`,
+    check: (out) => out.trim() === "11",
+  },
+  {
+    id: 25, title: "Cek Palindrom", topic: "string", diff: "medium",
+    desc: "Buat fungsi yang mengecek apakah sebuah kata adalah palindrom (sama dibaca depan-belakang).",
+    hint: "Balik string lalu bandingkan dengan aslinya.",
+    inputEx: "\"katak\"", outputEx: "true",
+    starter: `function isPalindrom(kata) {\n  // balik kata dan bandingkan\n}\n\nconsole.log(isPalindrom("katak"));\nconsole.log(isPalindrom("javascript"));\n`,
+    solution: `function isPalindrom(kata) {\n  const balik = kata.split("").reverse().join("");\n  return kata === balik;\n}\n\nconsole.log(isPalindrom("katak"));\nconsole.log(isPalindrom("javascript"));`,
+    check: (out) => out.includes("true") && out.includes("false"),
+  },
+  {
+    id: 26, title: "Array of Objects", topic: "object", diff: "medium",
+    desc: "Dari array objek siswa, tampilkan hanya nama siswa yang nilainya ≥ 80.",
+    hint: "Gunakan .filter() lalu .map() untuk mengambil nama saja.",
+    inputEx: "[{nama:'Ali',nilai:85},{nama:'Budi',nilai:70},{nama:'Cici',nilai:92}]",
+    outputEx: "Ali\nCici",
+    starter: `const siswa = [\n  { nama: "Ali", nilai: 85 },\n  { nama: "Budi", nilai: 70 },\n  { nama: "Cici", nilai: 92 }\n];\n// filter dan tampilkan nama yang nilainya >= 80\n`,
+    solution: `const siswa = [\n  { nama: "Ali", nilai: 85 },\n  { nama: "Budi", nilai: 70 },\n  { nama: "Cici", nilai: 92 }\n];\nconst bagus = siswa.filter(s => s.nilai >= 80);\nbagus.forEach(s => console.log(s.nama));`,
+    check: (out) => out.includes("Ali") && out.includes("Cici") && !out.includes("Budi"),
+  },
+  {
+    id: 27, title: "Rekursi Fibonacci", topic: "fungsi", diff: "medium",
+    desc: "Buat fungsi rekursif <code>fib(n)</code> yang mengembalikan bilangan Fibonacci ke-n.",
+    hint: "fib(0)=0, fib(1)=1, fib(n)=fib(n-1)+fib(n-2).",
+    inputEx: "fib(7)", outputEx: "13",
+    starter: `function fib(n) {\n  // base case dan recursive case\n}\n\nconsole.log(fib(7)); // 13\n`,
+    solution: `function fib(n) {\n  if (n <= 1) return n;\n  return fib(n - 1) + fib(n - 2);\n}\n\nconsole.log(fib(7));`,
+    check: (out) => out.trim() === "13",
+  },
+  {
+    id: 28, title: "Group by Category", topic: "object", diff: "medium",
+    desc: "Kelompokkan array produk berdasarkan kategorinya ke dalam sebuah object.",
+    hint: "Loop array, cek jika kategori belum ada di hasil buat array baru, lalu push nama produk.",
+    inputEx: "[{nama:'Apel',cat:'buah'},{nama:'Wortel',cat:'sayur'},{nama:'Mangga',cat:'buah'}]",
+    outputEx: "{ buah: ['Apel','Mangga'], sayur: ['Wortel'] }",
+    starter: `const produk = [\n  { nama: "Apel", cat: "buah" },\n  { nama: "Wortel", cat: "sayur" },\n  { nama: "Mangga", cat: "buah" }\n];\nconst grup = {};\n// loop dan kelompokkan\nconsole.log(grup);\n`,
+    solution: `const produk = [\n  { nama: "Apel", cat: "buah" },\n  { nama: "Wortel", cat: "sayur" },\n  { nama: "Mangga", cat: "buah" }\n];\nconst grup = {};\nfor (const p of produk) {\n  if (!grup[p.cat]) grup[p.cat] = [];\n  grup[p.cat].push(p.nama);\n}\nconsole.log(grup);`,
+    check: (out) => out.includes("buah") && out.includes("Apel") && out.includes("Mangga"),
+  },
+  {
+    id: 29, title: "Flatten Array", topic: "array", diff: "medium",
+    desc: "Buat fungsi yang meratakan array bersarang (nested) menjadi 1 dimensi.",
+    hint: "Gunakan .flat() atau loop rekursif. [1,[2,[3,4]],5] → [1,2,3,4,5]",
+    inputEx: "[1, [2, [3, 4]], 5]", outputEx: "[1, 2, 3, 4, 5]",
+    starter: `const nested = [1, [2, [3, 4]], 5];\n// flatten di sini\n`,
+    solution: `const nested = [1, [2, [3, 4]], 5];\nconsole.log(nested.flat(Infinity));`,
+    check: (out) => out.includes("1") && out.includes("2") && out.includes("5"),
+  },
+  {
+    id: 30, title: "Closure Counter", topic: "fungsi", diff: "medium",
+    desc: "Buat fungsi <code>buatCounter()</code> yang mengembalikan fungsi. Setiap kali dipanggil, hitungannya bertambah.",
+    hint: "Closure: fungsi di dalam fungsi bisa akses variabel luar. let count = 0; return () => ++count;",
+    inputEx: "counter() → 1, counter() → 2, counter() → 3",
+    outputEx: "1\n2\n3",
+    starter: `function buatCounter() {\n  let count = 0;\n  // kembalikan fungsi yang increment count\n}\n\nconst counter = buatCounter();\nconsole.log(counter());\nconsole.log(counter());\nconsole.log(counter());\n`,
+    solution: `function buatCounter() {\n  let count = 0;\n  return function() {\n    return ++count;\n  };\n}\n\nconst counter = buatCounter();\nconsole.log(counter());\nconsole.log(counter());\nconsole.log(counter());`,
+    check: (out) => {
+      const lines = out.trim().split("\n").map(s => s.trim());
+      return lines[0] === "1" && lines[1] === "2" && lines[2] === "3";
+    },
+  },
+];
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let progress = JSON.parse(localStorage.getItem('jskuy_progress') || '{}');
+let currentExIdx = 0;
+let triedSolving = {};
+
+function saveProgress() {
+  localStorage.setItem('jskuy_progress', JSON.stringify(progress));
+  updateUI();
+}
+
+function doneCount() { return Object.keys(progress).filter(k => progress[k]).length; }
+
+function updateUI() {
+  const done = doneCount();
+  const pct  = Math.round(done / 30 * 100);
+  document.getElementById('progressFill').style.width  = pct + '%';
+  document.getElementById('progressLabel').textContent = `${done}/30`;
+  document.getElementById('homeCompleted').textContent = done;
+  document.getElementById('homePct').textContent       = pct + '%';
+  document.getElementById('rvDone').textContent        = done;
+  document.getElementById('rvRemain').textContent      = 30 - done;
+  document.getElementById('rvPct').textContent         = pct + '%';
+  const badge = document.getElementById('exBadge');
+  badge.textContent = 30 - done;
+  renderExList();
+  renderReview();
+}
+
+// ─────────────────────────────────────────────
+//  PANELS
+// ─────────────────────────────────────────────
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'exercise') renderExercise(currentExIdx);
+  if (name === 'review')   updateUI();
+}
+
+// ─────────────────────────────────────────────
+//  CONCEPTS
+// ─────────────────────────────────────────────
+function renderConceptGrid() {
+  const grid = document.getElementById('conceptGrid');
+  grid.innerHTML = concepts.map(c => `
+    <div class="concept-card" onclick="showConcept('${c.id}')">
+      <div class="concept-icon">${c.icon}</div>
+      <div class="concept-title">${c.title}</div>
+      <div class="concept-desc">${c.short}</div>
+      <span class="concept-tag">#${c.tag}</span>
+    </div>
+  `).join('');
+}
+
+function showConcept(id) {
+  const c = concepts.find(x => x.id === id);
+  document.getElementById('conceptList').style.display = 'none';
+  const detail = document.getElementById('conceptDetail');
+  detail.style.display = 'block';
+  detail.innerHTML = `
+    <button class="back-btn" onclick="hideConcept()">← Kembali ke Daftar Konsep</button>
+    <div class="concept-detail">
+      <div class="tag-wrap"><span class="tag">#${c.tag}</span></div>
+      <h2>${c.icon} ${c.title}</h2>
+      <p class="desc">${c.desc}</p>
+      <div class="code-block">
+        <div class="code-block-header">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <span>script.js</span>
+        </div>
+        <pre>${c.code}</pre>
+      </div>
+      <div class="section-title" style="margin-top:20px">💡 Poin Penting</div>
+      <ul class="key-points">
+        ${c.points.map(p => `<li>${p}</li>`).join('')}
+      </ul>
+      <div style="margin-top:20px">
+        <button class="btn btn-primary" onclick="showPanel('exercise')">Latihan Soal tentang ${c.title} →</button>
+      </div>
+    </div>
+  `;
+}
+
+function hideConcept() {
+  document.getElementById('conceptList').style.display = 'block';
+  document.getElementById('conceptDetail').style.display = 'none';
+}
+
+// ─────────────────────────────────────────────
+//  EXERCISE LIST
+// ─────────────────────────────────────────────
+function renderExList() {
+  const container = document.getElementById('exListItems');
+  if (!container) return;
+  container.innerHTML = exercises.map((ex, i) => {
+    const done = progress[ex.id];
+    const curr = i === currentExIdx;
+    const diffClass = ex.diff === 'easy' ? 'diff-easy' : ex.diff === 'medium' ? 'diff-med' : 'diff-hard';
+    return `
+      <div class="ex-item ${done ? 'done' : ''} ${curr ? 'active' : ''}" onclick="jumpEx(${i})">
+        <div class="ex-num">${done ? '✓' : ex.id}</div>
+        <div class="ex-name">${ex.title}</div>
+        <span class="ex-diff ${diffClass}">${ex.diff}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function jumpEx(i) {
+  currentExIdx = i;
+  renderExercise(i);
+  renderExList();
+}
+
+// ─────────────────────────────────────────────
+//  EXERCISE RENDERER
+// ─────────────────────────────────────────────
+function renderExercise(i) {
+  const ex = exercises[i];
+  const done = progress[ex.id];
+  const tried = triedSolving[ex.id];
+  const diffClass = ex.diff === 'easy' ? 'diff-easy' : 'diff-med';
+
+  const content = document.getElementById('exerciseContent');
+  content.innerHTML = `
+    <div class="ex-card">
+      <div class="ex-card-header">
+        <div>
+          <div class="ex-card-title">
+            ${ex.id}. ${ex.title}
+            ${done ? '<span class="badge-done">✓ Selesai</span>' : ''}
+          </div>
+          <div class="ex-card-desc">${ex.desc}</div>
+        </div>
+        <span class="ex-diff ${diffClass}" style="flex-shrink:0">${ex.diff}</span>
+      </div>
+      <div class="ex-card-body">
+        <div class="io-box">
+          <div class="io-item">
+            <div class="io-label">Input / Kondisi</div>
+            <div class="io-val">${ex.inputEx}</div>
+          </div>
+          <div class="io-item">
+            <div class="io-label">Output yang Diharapkan</div>
+            <div class="io-val">${ex.outputEx}</div>
+          </div>
+        </div>
+
+        <div class="editor-wrap" style="margin-top:14px">
+          <div class="editor-header">
+            <div class="editor-tabs"><div class="editor-tab">📝 Editor</div></div>
+            <div style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--text-muted)">Topik: ${ex.topic}</div>
+          </div>
+          <textarea class="code-editor" id="codeEditor_${ex.id}" placeholder="// Tulis kode JavaScript kamu di sini...">${ex.starter}</textarea>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-run" onclick="runCode(${ex.id})" id="runBtn_${ex.id}">▶ Run Code</button>
+          <button class="btn-reset" onclick="resetCode(${ex.id})" title="Reset ke starter code">↺</button>
+          <button class="btn-sol ${tried ? '' : 'locked'}" id="solBtn_${ex.id}" onclick="${tried ? `showSolution(${ex.id})` : 'noSol()'}">🔓 Lihat Solusi</button>
+          ${i < exercises.length - 1 ? `<button class="btn-next" onclick="nextEx()">Soal Berikutnya →</button>` : `<button class="btn-next" onclick="showPanel('review')">🎉 Lihat Progress</button>`}
+        </div>
+
+        <div class="terminal" style="margin-top:14px" id="terminal_${ex.id}">
+          <div class="terminal-header">
+            <div class="terminal-dot"></div>
+            <span>Terminal Output</span>
+          </div>
+          <div class="terminal-body" id="termBody_${ex.id}">
+            <span class="t-sys">// Tekan "Run Code" untuk menjalankan kode kamu</span>
+          </div>
+        </div>
+
+        <div class="solution-box" id="solBox_${ex.id}">
+          <h4>💡 Salah Satu Solusi</h4>
+          <div class="code-block">
+            <div class="code-block-header"><div class="code-dots"><span></span><span></span><span></span></div><span>solution.js</span></div>
+            <pre style="white-space:pre-wrap">${escHtml(ex.solution)}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  renderExList();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function nextEx() {
+  if (currentExIdx < exercises.length - 1) {
+    currentExIdx++;
+    renderExercise(currentExIdx);
+    renderExList();
+    document.getElementById('exerciseContent').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function resetCode(id) {
+  const ex = exercises.find(e => e.id === id);
+  document.getElementById(`codeEditor_${id}`).value = ex.starter;
+}
+
+function noSol() {
+  const tb = document.getElementById(`terminal_${exercises[currentExIdx].id}`);
+  if (tb) {
+    const body = tb.querySelector('.terminal-body');
+    body.innerHTML = `<div class="t-line"><span class="t-err">⚠ Coba kerjakan dulu! Tombol solusi akan terbuka setelah kamu Run Code.</span></div>`;
+  }
+}
+
+function showSolution(id) {
+  const box = document.getElementById(`solBox_${id}`);
+  if (box) box.classList.toggle('show');
+}
+
+// ─────────────────────────────────────────────
+//  CODE RUNNER (safe sandbox)
+// ─────────────────────────────────────────────
+function runCode(id) {
+  const ex    = exercises.find(e => e.id === id);
+  const code  = document.getElementById(`codeEditor_${id}`).value;
+  const body  = document.getElementById(`termBody_${id}`);
+  const runBtn = document.getElementById(`runBtn_${id}`);
+
+  runBtn.classList.add('running');
+  runBtn.textContent = '⏳ Running...';
+
+  triedSolving[id] = true;
+  const solBtn = document.getElementById(`solBtn_${id}`);
+  if (solBtn) {
+    solBtn.classList.remove('locked');
+    solBtn.onclick = () => showSolution(id);
+  }
+
+  setTimeout(() => {
+    const logs = [];
+    const errors = [];
+
+    const fakeConsole = {
+      log: (...args) => {
+        const line = args.map(a => {
+          if (a === null) return 'null';
+          if (a === undefined) return 'undefined';
+          if (typeof a === 'object') return JSON.stringify(a);
+          return String(a);
+        }).join(' ');
+        logs.push(line);
+      },
+      error: (...args) => errors.push(args.join(' ')),
+      warn:  (...args) => logs.push('⚠ ' + args.join(' ')),
+    };
+
+    let output = '';
+    let success = false;
+
+    try {
+      const fn = new Function('console', code);
+      fn(fakeConsole);
+      output = logs.join('\n');
+      success = ex.check(output);
+    } catch (e) {
+      errors.push(e.message);
+    }
+
+    // Render output
+    let html = '';
+    if (logs.length > 0) {
+      html += logs.map(l => `<div class="t-line"><span class="t-prompt">$</span><span class="t-out">${escHtml(l)}</span></div>`).join('');
+    }
+    if (errors.length > 0) {
+      html += errors.map(e => `
+        <div class="t-line"><span class="t-err">✖ Error: ${escHtml(e)}</span></div>
+        <div class="t-line"><span class="t-hint">💡 Hint: ${escHtml(ex.hint)}</span></div>
+      `).join('');
+    }
+    if (logs.length === 0 && errors.length === 0) {
+      html = `<div class="t-line"><span class="t-sys">// Tidak ada output. Pastikan kamu pakai console.log()</span></div>`;
+    }
+
+    if (success) {
+      html += `<div class="t-line" style="margin-top:8px"><span class="t-success">✅ Luar biasa! Jawaban benar! Soal ini selesai!</span></div>`;
+      if (!progress[id]) {
+        progress[id] = true;
+        saveProgress();
+        triggerConfetti();
+      }
+    } else if (logs.length > 0) {
+      html += `<div class="t-line" style="margin-top:4px"><span class="t-hint">💡 Hint: ${escHtml(ex.hint)}</span></div>`;
+    }
+
+    body.innerHTML = html;
+    runBtn.classList.remove('running');
+    runBtn.textContent = '▶ Run Code';
+    renderExList();
+  }, 300);
+}
+
+// ─────────────────────────────────────────────
+//  REVIEW PANEL
+// ─────────────────────────────────────────────
+function renderReview() {
+  const grid = document.getElementById('reviewGrid');
+  const list = document.getElementById('reviewList');
+  if (!grid) return;
+
+  grid.innerHTML = exercises.map((ex, i) => {
+    const done = progress[ex.id];
+    const curr = i === currentExIdx;
+    return `<div class="rev-cell ${done ? 'done' : curr ? 'current' : 'pending'}"
+      onclick="jumpExReview(${i})" data-tip="${ex.id}. ${ex.title}">${ex.id}</div>`;
+  }).join('');
+
+  list.innerHTML = exercises.map((ex, i) => {
+    const done = progress[ex.id];
+    const diffClass = ex.diff === 'easy' ? 'diff-easy' : 'diff-med';
+    return `
+      <div class="rev-row ${done ? 'done' : 'pending'}" onclick="jumpExReview(${i})">
+        <span class="rev-idx">${ex.id}</span>
+        <span class="rev-title">${ex.title} <span class="ex-diff ${diffClass}" style="margin-left:6px">${ex.diff}</span></span>
+        <span class="rev-status">${done ? '✅ Selesai' : '⏳ Belum'}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function jumpExReview(i) {
+  currentExIdx = i;
+  showPanel('exercise');
+}
+
+// ─────────────────────────────────────────────
+//  CONFETTI
+// ─────────────────────────────────────────────
+function triggerConfetti() {
+  const canvas = document.getElementById('confetti');
+  const ctx    = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const pieces = Array.from({ length: 80 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * -100,
+    w: 6 + Math.random() * 8,
+    h: 8 + Math.random() * 6,
+    r: Math.random() * Math.PI * 2,
+    dr: (Math.random() - 0.5) * 0.2,
+    vy: 2 + Math.random() * 3,
+    vx: (Math.random() - 0.5) * 2,
+    c: ['#f7c948','#4ade80','#38bdf8','#f472b6','#fb923c','#a78bfa'][Math.floor(Math.random()*6)],
+    life: 1
+  }));
+
+  let frame;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.y  += p.vy; p.x += p.vx; p.r += p.dr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.r);
+      ctx.fillStyle = p.c;
+      ctx.globalAlpha = Math.max(0, 1 - p.y / canvas.height * 1.2);
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    if (pieces.some(p => p.y < canvas.height)) {
+      frame = requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  draw();
+  setTimeout(() => { cancelAnimationFrame(frame); ctx.clearRect(0,0,canvas.width,canvas.height); }, 3000);
+}
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+renderConceptGrid();
+renderExList();
+updateUI();
+renderReview();
+</script>
+</body>
+</html>
